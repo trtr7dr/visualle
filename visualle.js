@@ -289,7 +289,6 @@ class RandMesher {
     }
 
     sphere_random() {
-
         const radius = this.getRandomInt(50, 150), segments = this.getRandomInt(100, 200), rings = this.getRandomInt(50, 80);
         const geometry = tracker.track(new THREE.SphereBufferGeometry(radius, segments, rings));
 
@@ -304,7 +303,6 @@ class RandMesher {
     }
 
     cube_random() {
-
         const geometry = new THREE.BoxBufferGeometry(this.getRandomInt(50, 150), this.getRandomInt(50, 150), this.getRandomInt(50, 150), this.getRandomInt(10, 50), this.getRandomInt(10, 50), this.getRandomInt(10, 50));
 
         this.displacement_count = geometry.attributes.uv.count;
@@ -330,10 +328,9 @@ class RandMesher {
                 this.res = await this.gltf_get();
                 break;
         }
-  
+
         return this.res;
     }
-
 }
 
 class ComplexNumber {
@@ -341,30 +338,25 @@ class ComplexNumber {
         this.r = r;
         this.i = i;
     }
-    ;
-            //расстояние до центра
-            mag() {
+    
+    mag() {
         return Math.hypot(this.r, this.i);
     }
-    ;
-            //сложение
-            add(nmb) {
+    
+    add(nmb) {
         this.r += nmb.r;
         this.i += nmb.i;
         return this;
     }
-    ;
-            //умножение
-            square() {
+    
+    square() {
         let r = this.r;
         let i = this.i;
         this.r = (r * r) - (i * i);
         this.i = 2 * r * i;
         return this;
     }
-    ;
 }
-;
 
 class RandDoter {
 
@@ -447,7 +439,7 @@ class Visualle {
         this.pauseTime = Date.now();
         this.hdrs = 15;
         this.as = new AudioStream();
-
+        this.center = new THREE.Vector3( );
         this.init();
     }
 
@@ -463,7 +455,6 @@ class Visualle {
     }
 
     random_function(x) {
-
         let res;
         switch (this.rand1) {
             case 1:
@@ -482,7 +473,6 @@ class Visualle {
     }
 
     setLighting() {
-
         let directionalLight = tracker.track(new THREE.DirectionalLight(0xffffff, 100000));
 
         directionalLight.position.set(100, 0, 0);
@@ -497,7 +487,7 @@ class Visualle {
         new RGBELoader()
                 .setDataType(THREE.UnsignedByteType)
                 .setPath('hdri/')
-                .load(self.getRandomInt(1,self.hdrs + 1)+'.hdr', function (texture) {
+                .load(self.getRandomInt(1, self.hdrs + 1) + '.hdr', function (texture) {
 
                     var envMap = pmremGenerator.fromEquirectangular(texture).texture;
 
@@ -511,14 +501,14 @@ class Visualle {
     }
 
     init() {
-        this.camera = tracker.track(new THREE.PerspectiveCamera(this.getRandomInt(5,50), window.innerWidth / window.innerHeight, 1, 1000));
+        this.camera = tracker.track(new THREE.PerspectiveCamera(this.getRandomInt(5, 50), window.innerWidth / window.innerHeight, 1, 1000));
         this.camera.position.z = 500;
 
         this.scene = new THREE.Scene();
         this.scene.background = tracker.track(new THREE.Color(0x050505));
 
         this.add_custom_meshes();
-        
+
         this.renderer = new THREE.WebGLRenderer({alpha: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -551,7 +541,7 @@ class Visualle {
 
     reloader() {
         tracker.dispose();
-        this.camera.fov = this.getRandomInt(5,50);
+        this.camera.fov = this.getRandomInt(5, 50);
         this.postprocessing_create();
         this.setLighting();
         this.random_params();
@@ -566,10 +556,8 @@ class Visualle {
 
     animate() {
         requestAnimationFrame(vAlee.animate);
-
         vAlee.startTime = vAlee.startTime + (Date.now() - vAlee.pauseTime);
         vAlee.pauseTime = Date.now();
-
         vAlee.render();
         vAlee.composer.render();
     }
@@ -624,11 +612,10 @@ class Visualle {
                     j = 0;
                     break;
             }
-
+            
             if (this.rand1 < 2) {
-                this.points.geometry.attributes.color.array[i] += i/ l * r1;
+                this.points.geometry.attributes.color.array[i] += i / l * r1;
             }
-
         }
 
         if (this.points_other) {
@@ -639,8 +626,6 @@ class Visualle {
             this.points_other.geometry.attributes.position.needsUpdate = true;
             this.points_other.geometry.attributes.scale.needsUpdate = true;
         }
-
-
 
         this.points.geometry.attributes.position.needsUpdate = true;
         this.points.geometry.attributes.color.needsUpdate = true;
@@ -654,24 +639,26 @@ class Visualle {
         this.bloomPass.threshold = 0;
         this.bloomPass.strength = this.getRandomInt(1, 3) / 10;
         this.bloomPass.radius = 0.1;
-        this.composer.addPass(this.bloomPass);
-        this.afterimagePass = new AfterimagePass(Math.random()); 
-        this.composer.addPass(this.afterimagePass);
 
-        if (this.rand1 % 2 === 0) {
+        if ($('#bloom').is(':checked')) {
+            this.composer.addPass(this.bloomPass);
+        }
+
+        this.afterimagePass = new AfterimagePass(Math.random());
+
+        if ($('#path').is(':checked')) {
+            this.composer.addPass(this.afterimagePass);
+        }
+
+        if ((this.rand1 % 2 === 0 && $('#film').is(':checked') || $('#film_r').is(':checked'))) {
             this.effectFilm = new FilmPass(Math.random(), Math.random(), Math.random() * 1000, false);
             this.composer.addPass(this.effectFilm);
         }
-//
-        if (this.rand1 === 1 || this.rand1 === 8) {
+
+        if (((this.rand1 === 1 || this.rand1 === 8) && $('#mono').is(':checked')) || $('#mono_r').is(':checked')) {
             var effectGrayScale = new ShaderPass(LuminosityShader);
             this.composer.addPass(effectGrayScale);
         }
-        
-//        this.effectSobel = tracker.track(new ShaderPass(SobelOperatorShader));
-//        this.effectSobel.uniforms[ 'resolution' ].value.x = window.innerWidth * window.devicePixelRatio;
-//        this.effectSobel.uniforms[ 'resolution' ].value.y = window.innerHeight * window.devicePixelRatio;
-//        this.composer.addPass(this.effectSobel);
 
         this.bokehPass = tracker.track(new BokehPass(this.scene, this.camera, {
             focus: 10,
@@ -682,7 +669,7 @@ class Visualle {
             height: window.innerHeight
         }));
 
-        if (this.rand1 > 7) {
+        if ((this.rand1 > 7 && $('#bokeh').is(':checked')) || $('#bokeh_r').is(':checked')) {
             this.composer.addPass(this.bokehPass);
         }
 
@@ -697,23 +684,19 @@ class Visualle {
 
         this.camera.position.x = -50 * this.rand1 * Math.sin(time / 100);
         this.camera.position.z = -50 * this.rand1 * Math.cos(time / 100);
-        if(this.rand1 % 2 === 0){
+        if (this.rand1 % 2 === 0) {
             this.camera.position.y = -50 * this.rand1 * Math.cos(time / 100);
         }
 
-        this.camera.lookAt(this.rand_mesh.res.position);
+        this.camera.lookAt(this.center);
 
         if (this.custom_mesh) {
-
             this.rand_mesh.uniforms[ 'amplitude' ].value = this.as.get_by_index(7) / 5000;
-
             for (var key in this.rand_mesh.uniforms[ 'color' ].value) {
                 this.rand_mesh.uniforms[ 'color' ].value[key] = (this.rand_mesh.uniforms[ 'color' ].value[key] > 2) ? 2 : this.rand_mesh.uniforms[ 'color' ].value[key];
                 this.rand_mesh.uniforms[ 'color' ].value[key] = (this.rand_mesh.uniforms[ 'color' ].value[key] < 0) ? 0 : this.rand_mesh.uniforms[ 'color' ].value[key];
                 this.rand_mesh.uniforms[ 'color' ].value[key] += (this.as.get_by_index(this.getRandomInt(1, 6)) > 150) ? Math.random() / 20 : Math.random() * (-1) / 20;
-
             }
-
 
             let l = this.rand_mesh.res.geometry.attributes.position.array.length;
 
@@ -722,7 +705,6 @@ class Visualle {
                 this.rand_mesh.displacement[ i ] += this.as.get_by_index(this.rand1 - 1) / 2;
             }
             this.custom_mesh.geometry.attributes.displacement.needsUpdate = true;
-
 
             if (this.rand2 > 5) {
                 for (let i = 1; i < l - 4; i += this.rand1) {
@@ -734,12 +716,8 @@ class Visualle {
 
                 this.custom_mesh.geometry.attributes.position.needsUpdate = true;
             }
-
         }
-
         this.renderer.render(this.scene, this.camera);
-
-
     }
 }
 
@@ -754,6 +732,21 @@ $("#container").click(function (event) { // обработка ссылок
     vAlee.reloader();
 });
 
-let clicker = setInterval(function() {
+
+var hud = true;
+$("#collapse").click(function (event) { // обработка ссылок
+    if (hud) {
+        $('#collapse').css('transform', 'rotate(-90deg)');
+        $('#hud').css('transform', 'scale(0) translate(20px, -900px)');
+        hud = false;
+    } else {
+        $('#collapse').css('transform', 'rotate(90deg)');
+        $('#hud').css('transform', 'scale(1) translate(0px, 0px)');
+        hud = true;
+    }
+});
+
+
+let clicker = setInterval(function () {
     $("#container").click();
 }, 10000);
